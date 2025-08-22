@@ -2,21 +2,46 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>AR com AR.js</title>
+  <title>AR | Cubo v.1.0.0</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  <!-- AR.js para A-Frame -->
   <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/ar.js/aframe/build/aframe-ar.min.js"></script>
-  <style> body { margin:0; overflow:hidden } </style>
+  <style>body{margin:0;overflow:hidden}</style>
 </head>
 <body>
-  <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
-    
-    <!-- Corrigido o caminho do marcador -->
-    <a-marker type="pattern" url="./imagens/413.patt">
-      <a-box position="0 0.5 0" width="1" height="1" depth="1" 
+  <a-scene
+    embedded
+    vr-mode-ui="enabled: false"
+    renderer="precision: mediump; antialias: true"
+    arjs="sourceType: webcam; debugUIEnabled: false;"
+  >
+    <!-- Luzes para garantir visibilidade -->
+    <a-entity light="type: ambient; intensity: 0.9"></a-entity>
+    <a-entity light="type: directional; intensity: 0.6" position="1 2 1"></a-entity>
+
+    <!-- Marcador personalizado (no diretório ./imagens) -->
+    <!-- Usei ?v=1 para forçar o Pages a não usar cache antigo -->
+    <a-marker id="m413" type="pattern" url="./imagens/413.patt?v=1" emitevents="true">
+      <a-box position="0 0.5 0" width="1" height="1" depth="1"
              material="color: red; side: double"></a-box>
     </a-marker>
 
+    <!-- (Opcional) Marcador Hiro para validar o pipeline: descomente se quiser testar
+    <a-marker preset="hiro">
+      <a-box position="0 0.5 0" material="color: #4caf50; side: double"></a-box>
+    </a-marker>
+    -->
+
     <a-entity camera></a-entity>
   </a-scene>
+
+  <script>
+    // Logs no console para saber se o marcador é detectado
+    const m = document.getElementById('m413');
+    m?.addEventListener('markerFound', () => console.log('413.patt: marcador ENCONTRADO'));
+    m?.addEventListener('markerLost',  () => console.log('413.patt: marcador PERDIDO'));
+  </script>
 </body>
 </html>
