@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>AR com AR.js</title>
+    <!-- Biblioteca A-Frame -->
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <!-- AR.js para A-Frame -->
+    <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/ar.js/aframe/build/aframe-ar.min.js"></script>
+</head>
+<body style="margin: 0; overflow: hidden;">
+    <!-- Cena AR.js -->
+    <a-scene embedded arjs="sourceType: webcam;">
+        
+        <!-- Usa seu marcador personalizado -->
+        <a-marker type="pattern" url="413.patt">
+            <!-- Objeto 3D simples -->
+            <a-box position="0 0.5 0" material="color: red;"></a-box>
+        </a-marker>
+
+        <!-- Câmera obrigatória -->
+        <a-entity camera></a-entity>
+    </a-scene>
+</body>
+</html>
