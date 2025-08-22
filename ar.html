@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AR — Forma Geométrica</title>
+
+  <!-- A-Frame + AR.js -->
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.js"></script>
+
+  <style>
+    body, html { margin:0; overflow:hidden; }
+    .hud {
+      position: fixed; left:12px; right:12px; bottom:12px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      background: rgba(10,15,25,.7); color:#e5e7eb; padding:10px 12px; border-radius:12px;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; backdrop-filter: blur(6px);
+      border:1px solid rgba(255,255,255,.12);
+    }
+    .hud .small { font-size:12px; opacity:.85 }
+    .btn {
+      appearance:none; border:1px solid rgba(255,255,255,.2);
+      background: rgba(255,255,255,.05); color:#fff; padding:8px 12px; border-radius:10px; cursor:pointer;
+      text-decoration:none;
+    }
+    .label { font-weight:600 }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  </style>
+</head>
+<body>
+  <!-- HUD com instruções -->
+  <div class="hud">
+    <div>
+      <div><span class="label">Forma:</span> <span id="shapeName">—</span></div>
+      <div class="small">Aponte a câmera para o marcador <span class="mono"><span id="markerName">—</span></span>.</div>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <a class="btn" href="./index.html">Voltar</a>
+      <button class="btn" id="flashBtn" title="Tentar ativar flash (se suportado)">Flash</button>
+    </div>
+  </div>
+
+  <a-scene
+    vr-mode-ui="enabled:false"
+    renderer="antialias:true; alpha:true; logarithmicDepthBuffer:true"
+    embedded
+    arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix;"
+  >
+    <!-- Luzes para melhor visualização -->
+    <a-entity light="type: ambient; intensity: 0.6"></a-entity>
+    <a-entity light="type: directional; intensity: 0.8" position="1 2 1"></a-entity>
+
+    <!-- O marcador e a forma serão injetados via JS abaixo -->
+    <a-entity id="markerContainer"></a-entity>
+
+    <!-- câmera AR -->
+    <a-entity camera></a-entity>
+  </a-scene>
+
+  <script>
+    // Params da URL: ?shape=cubo&marker=imagens/413.patt
+    const params = new URLSearchParams(location.search);
+    const shape = (params.get('shape') || 'cubo').toLowerCase();
+    // default para seu caso: imagens/413.patt
+    const markerFile = params.get('marker') || 'imagens/413.patt';
+
+    document.getElementById('shapeName').textContent = shape;
+    document.getElementById('markerName').textContent = markerFile;
+
+    // Cria a geometria conforme a forma
+    function createGeometryFor(shapeKey) {
+      const base = { position: '0 0.5 0', color: '#22d3ee', roughness: 0.5, metalness: 0.2 };
+
+      switch (shapeKey) {
+        case 'cubo':
+          return `<a-box position="${base.position}" color="${base.color}" metalness="${base.metalness}" roughness="${base.roughness}" depth="1" height="1" width="1"></a-box>`;
+        case 'esfera':
+          return `<a-sphere position="${base.position}" color="${base.color}" radius="0.6" metalness="${base.metalness}" roughness="${base.roughness}"></a-sphere>`;
+        case 'cilindro':
+          return `<a-cylinder position="${base.position}" color="${base.color}" radius="0.45" height="1.1" metalness="${base.metalness}" roughness="${base.roughness}"></a-cylinder>`;
+        case 'cone':
+          return `<a-cone position="${base.position}" color="${base.color}" radius-bottom="0.6" radius-top="0.0" height="1.2" metalness="${base.metalness}" roughness="${base.roughness}"></a-cone>`;
+        case 'plano':
+          return `<a-plane position="0 0.01 0" rotation="-90 0 0" color="#94a3b8" width="1.2" height="1.2"></a-plane>`;
+        case 'torus':
+        case 'tórus':
+          return `<a-torus position="${base.position}" color="${base.color}" radius="0.55" radius-tubular="0.15" metalness="${base.metalness}" roughness="${base.roughness}"></a-torus>`;
+        case 'anel':
+          return `<a-ring position="${base.position}" rotation="-90 0 0" color="${base.color}" radius-inner="0.25" radius-outer="0.55"></a-ring>`;
+        case 'tetraedro':
+          return `<a-tetrahedron position="${base.position}" color="${base.color}" radius="0.7"></a-tetrahedron>`;
+        case 'octaedro':
+          return `<a-octahedron position="${base.position}" color="${base.color}" radius="0.65"></a-octahedron>`;
+        case 'dodecaedro':
+          return `<a-dodecahedron position="${base.position}" color="${base.color}" radius="0.65"></a-dodecahedron>`;
+        case 'icosaedro':
+          return `<a-icosahedron position="${base.position}" color="${base.color}" radius="0.65"></a-icosahedron>`;
+        default:
+          return `<a-box position="${base.position}" color="${base.color}" depth="1" height="1" width="1"></a-box>`;
+      }
+    }
+
+    // Injeta o marcador + a forma
+    const markerContainer = document.getElementById('markerContainer');
+    markerContainer.innerHTML = `
+      <a-marker type="pattern" url="./${markerFile}">
+        ${createGeometryFor(shape)}
+      </a-marker>
+    `;
+
+    // Botão de flash (se suportado pelo device/navegador)
+    const flashBtn = document.getElementById('flashBtn');
+    let track; let torchOn = false;
+
+    async function toggleTorch(){
+      try {
+        const sceneEl = document.querySelector('a-scene');
+        const stream = sceneEl.systems.arjs._arSession.arSource.domElement.srcObject;
+        if (!stream) throw new Error('Fluxo de câmera não disponível.');
+        track = stream.getVideoTracks()[0];
+        const caps = track.getCapabilities?.();
+        if (!caps || !caps.torch) throw new Error('Torch não suportado neste dispositivo.');
+        torchOn = !torchOn;
+        await track.applyConstraints({ advanced: [{ torch: torchOn }] });
+        flashBtn.textContent = torchOn ? 'Flash (ligado)' : 'Flash';
+      } catch (e) {
+        alert('Flash não suportado neste dispositivo/navegador.');
+        console.warn(e);
+      }
+    }
+    flashBtn.addEventListener('click', toggleTorch);
+  </script>
+</body>
+</html>

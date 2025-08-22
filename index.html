@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Formas Geométricas em AR</title>
+  <style>
+    body {
+      margin:0; font-family: system-ui, sans-serif;
+      background:#0f172a; color:#f1f5f9;
+      display:flex; justify-content:center; align-items:center;
+      min-height:100vh; padding:20px;
+    }
+    .wrap { max-width:900px; width:100%; }
+    h1 { margin-bottom:20px; text-align:center; }
+    .grid {
+      display:grid; gap:14px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+    a.btn {
+      display:flex; align-items:center; justify-content:center;
+      padding:16px; background:#1e293b; color:#f1f5f9;
+      border-radius:12px; text-decoration:none; font-weight:500;
+      border:1px solid #334155; transition:.2s;
+    }
+    a.btn:hover { background:#334155; transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Formas Geométricas</h1>
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <script>
+    const formas = [
+      { key:'cubo',        label:'Cubo' },
+      { key:'esfera',      label:'Esfera' },
+      { key:'cilindro',    label:'Cilindro' },
+      { key:'cone',        label:'Cone' },
+      { key:'plano',       label:'Plano' },
+      { key:'torus',       label:'Tórus' },
+      { key:'tetraedro',   label:'Tetraedro' },
+      { key:'octaedro',    label:'Octaedro' },
+      { key:'dodecaedro',  label:'Dodecaedro' },
+      { key:'icosaedro',   label:'Icosaedro' }
+    ];
+
+    const grid = document.getElementById('grid');
+    formas.forEach(f=>{
+      const a = document.createElement('a');
+      a.className = 'btn';
+      // sempre usando o mesmo marcador: imagens/413.patt
+      a.href = `./ar.html?shape=${encodeURIComponent(f.key)}&marker=imagens/413.patt`;
+      a.textContent = f.label;
+      grid.appendChild(a);
+    });
+  </script>
+</body>
+</html>
